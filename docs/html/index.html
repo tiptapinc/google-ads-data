@@ -84,7 +84,7 @@
     <span class="s2">&quot;customer.descriptive_name&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 <span class="n">fromResource</span> <span class="o">=</span> <span class="s2">&quot;keyword_view&quot;</span>
-<span class="n">wheres</span> <span class="o">=</span> <span class="s2">&quot;campaign.name = &#39;Chevrolet.Search.OEM&#39;&quot;</span>
+<span class="n">wheres</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;campaign.name = &#39;Chevrolet.Search.OEM&#39;&quot;</span><span class="p">]</span>
 
 <span class="n">df</span> <span class="o">=</span> <span class="n">get_ga_data</span><span class="p">(</span><span class="n">custId</span><span class="p">,</span> <span class="n">fromResource</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">wheres</span><span class="o">=</span><span class="n">wheres</span><span class="p">)</span>
 </pre></div>
@@ -104,7 +104,7 @@
 <li><p><strong>custId</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The Google Ads <code class="docutils literal notranslate"><span class="pre">customer.id</span></code> resource for the account.</p></li>
 <li><p><strong>fromResource</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The Google Ads API resource that fields will be selected from.
 For example <code class="docutils literal notranslate"><span class="pre">keyword_view</span></code></p></li>
-<li><p><strong>fields</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – The Google Ads API resource fields that you want to return data
+<li><p><strong>fields</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">typing.List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – The Google Ads API resource fields that you want to return data
 for. For example <code class="docutils literal notranslate"><span class="pre">['campaign.name',</span> <span class="pre">'metrics.impressions']</span></code></p></li>
 <li><p><strong>start</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">typing.Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.date</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]) – Start date for metrics. Defaults to the current day for the
 specified customer account</p></li>
@@ -112,7 +112,7 @@ specified customer account</p></li>
 specified customer account</p></li>
 <li><p><strong>zeroImpressions</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Whether to include resources with zero impressions. Default is
 False.</p></li>
-<li><p><strong>wheres</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Additional ‘WHERE’ clauses to add to the GAQL query. For example
+<li><p><strong>wheres</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">typing.List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – Additional ‘WHERE’ clauses to add to the GAQL query. For example
 <code class="docutils literal notranslate"><span class="pre">ad_group_ad.ad.type</span> <span class="pre">=</span> <span class="pre">'RESPONSIVE_SEARCH_AD'</span></code></p></li>
 </ul>
 </dd>
@@ -206,7 +206,7 @@ time in the account’s timezone</p>
 <li><p><strong>custId</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The Google Ads <code class="docutils literal notranslate"><span class="pre">customer.id</span></code> resource for the account.</p></li>
 <li><p><strong>fromResource</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The Google Ads API resource that fields will be selected from.
 For example <code class="docutils literal notranslate"><span class="pre">keyword_view</span></code></p></li>
-<li><p><strong>fields</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – The Google Ads API resource fields that you want to return data
+<li><p><strong>fields</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">typing.List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – The Google Ads API resource fields that you want to return data
 for. For example <code class="docutils literal notranslate"><span class="pre">['campaign.name',</span> <span class="pre">'metrics.impressions']</span></code></p></li>
 <li><p><strong>start</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">typing.Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.date</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]) – Start date for metrics. Defaults to the current day for the
 specified customer account</p></li>
@@ -235,7 +235,7 @@ and return the results in a pandas DataFrame</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>custId</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The Google Ads <code class="docutils literal notranslate"><span class="pre">customer.id</span></code> resource for the account.</p></li>
 <li><p><strong>query</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – A fully-formed GAQL query.</p></li>
-<li><p><strong>fields</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – The Google Ads API resource fields that are selected in the query</p></li>
+<li><p><strong>fields</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">typing.List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – The Google Ads API resource fields that are selected in the query</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>

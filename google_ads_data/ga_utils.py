@@ -21,7 +21,7 @@ from google.protobuf.json_format import MessageToDict
 import pandas
 import pytz
 import re
-from typing import Union
+import typing
 import yaml
 
 from .account_utils import cust_id_to_refresh_token
@@ -162,9 +162,9 @@ def account_date(custId: str) -> datetime.date:
 def make_base_query(
     custId: str,
     fromResource: str,
-    fields: list[str],
-    start: Union[datetime.date, datetime.datetime] = None,
-    end: Union[datetime.date, datetime.datetime] = None,
+    fields: typing.List[str],
+    start: typing.Union[datetime.date, datetime.datetime] = None,
+    end: typing.Union[datetime.date, datetime.datetime] = None,
     zeroImpressions: bool = False,
 ) -> str:
     """
@@ -230,7 +230,9 @@ def make_base_query(
     return query
 
 
-def execute_query(custId: str, query: str, fields: list[str]) -> pandas.DataFrame:
+def execute_query(
+    custId: str, query: str, fields: typing.List[str]
+) -> pandas.DataFrame:
     """
     Execute a GAQL query using ``GoogleAdsService.SearchStream``
     and return the results in a pandas DataFrame
@@ -269,11 +271,11 @@ def execute_query(custId: str, query: str, fields: list[str]) -> pandas.DataFram
 def get_ga_data(
     custId: str,
     fromResource: str,
-    fields: list[str],
-    start: Union[datetime.date, datetime.datetime] = None,
-    end: Union[datetime.date, datetime.datetime] = None,
+    fields: typing.List[str],
+    start: typing.Union[datetime.date, datetime.datetime] = None,
+    end: typing.Union[datetime.date, datetime.datetime] = None,
     zeroImpressions: bool = False,
-    wheres: list[str] = [],
+    wheres: typing.List[str] = [],
 ) -> pandas.DataFrame:
     """
     Get a pandas dataframe of Google Ads data for a customer account

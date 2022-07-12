@@ -49,7 +49,7 @@ For example, the following will get the most recent day's keywords data for the 
         "customer.descriptive_name",
     ]
     fromResource = "keyword_view"
-    wheres = "campaign.name = 'Chevrolet.Search.OEM'"
+    wheres = ["campaign.name = 'Chevrolet.Search.OEM'"]
 
     df = get_ga_data(custId, fromResource, fields, wheres=wheres)
 

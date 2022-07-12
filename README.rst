@@ -51,7 +51,7 @@ the `car.com` account of the customer `autoweb`.
         "customer.descriptive_name",
     ]
     fromResource = "keyword_view"
-    wheres = "campaign.name = 'Chevrolet.Search.OEM'"
+    wheres = ["campaign.name = 'Chevrolet.Search.OEM'"]
 
     df = get_ga_data(custId, fromResource, fields, wheres=wheres)
 
