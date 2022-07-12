@@ -1,0 +1,5 @@
+boto3
+google-ads
+pandas
+PyMongo
+PyYAML

@@ -86,23 +86,28 @@ def account_name_to_cust_id(
     acctname: str, custname: str = "", env: str = "prod"
 ) -> str:
     """
-    get the Google Ads customer ID for an account identified by its name
+    Get the Google Ads customer ID for an account identified by its name
     and optionally the MotiveMetrics customer name
 
-    :param str acctname: the name of the account. This parameter is
+    :arg acctname:
+        The (case insensitive) name of the account. This parameter is
         sufficient if the name is globally unique amongst MotiveMetrics
-        accessible accounts, do not include account type (- Google).
-        Case insensitive.
-    :param str custname: (optional) the name of the MotiveMetrics customer
-        that owns the account. Include this parameter if you're not sure that
-        the account name is unique. Case insensitive.
-    :param str env: (optional) environment of the AppX mongodb database
+        accessible accounts. If the name is not unique, the returned
+        account will be one of the accounts with that name. Do not include
+        the account type (- Google), that is appended by AppX.
 
-    :returns: customer ID
-    :rtype: str
+    :arg custname:
+        The (case insensitive) name of the MotiveMetrics customer that
+        owns the account. Include this parameter if you're not sure that
+        the account name is globally unique among customer accounts.
+
+    :arg env:
+        Environment from which to retrieve the account information.
+
+    :return:
+        The Google Ads ``customer.id`` resource for the account.
 
     Example::
-
         custId = account_name_to_cust_id("car.com", custname="autoweb")
     """
     account = account_name_to_account(acctname, custname, env)

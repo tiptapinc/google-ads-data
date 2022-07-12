@@ -21,9 +21,10 @@ from google.protobuf.json_format import MessageToDict
 import pandas
 import pytz
 import re
+from typing import Union
 import yaml
 
-from .account_utils import cust_id_to_refresh_token
+from account_utils import cust_id_to_refresh_token
 
 GOOGLE_ADS_API_VERSION = "v10"
 CUSTOMER_CLIENT_QUERY = """
@@ -124,14 +125,16 @@ def get_nested_dict_value(key, d):
     return d
 
 
-def account_time(custId):
+def account_time(custId: str) -> datetime.datetime:
     """
     Returns a timezone-aware datetime that represents the current
     time in the account's timezone
-    Args:
-        custId: (string) customerId for the Google Ads account
-    Returns:
-        timezone aware datetime.datetime object
+
+    :arg custId:
+        ``customer.id`` for the Google Ads account
+
+    :return:
+        Account's current time
     """
     service = get_ga_api_service(custId, "GoogleAdsService")
     query = "SELECT customer.time_zone FROM customer"
@@ -143,21 +146,57 @@ def account_time(custId):
     return datetime.datetime.utcnow().astimezone(tz)
 
 
-def account_date(custId):
+def account_date(custId: str) -> datetime.date:
     """
-    Returns the current date for an account, based on the account's
-    timezone
-    Args:
-        custId: (string) customerId for the Google Ads account
-    Returns:
-        datetime.date object
+    Returns the current date for an account, based on the account's timezone
+
+    :arg custId:
+        ``customer.id`` for the Google Ads account
+
+    :return:
+        Account's current date.
     """
     return account_time(custId).date()
 
 
-def make_query(
-    custId, fromResource, fields, start=None, end=None, zeroImpressions=False
-):
+def make_base_query(
+    custId: str,
+    fromResource: str,
+    fields: list[str],
+    start: Union[datetime.date, datetime.datetime] = None,
+    end: Union[datetime.date, datetime.datetime] = None,
+    zeroImpressions: bool = False,
+) -> str:
+    """
+    Make a basic Google Ads Query Language (GAQL) query to be used with
+    `GoogleAdsService.SearchStream` or `GoogleAdsService.Search`
+
+    :arg custId:
+        The Google Ads ``customer.id`` resource for the account.
+
+    :arg fromResource:
+        The Google Ads API resource that fields will be selected from.
+        For example ``keyword_view``
+
+    :arg fields:
+        The Google Ads API resource fields that you want to return data
+        for. For example ``['campaign.name', 'metrics.impressions']``
+
+    :arg start:
+        Start date for metrics. Defaults to the current day for the
+        specified customer account
+
+    :arg end:
+        End date for metrics. Defaults to the current day for the
+        specified customer account
+
+    :arg zeroImpressions:
+        Whether to include resources with zero impressions. Default is
+        False.
+
+    :return:
+        A fully formed GAQL query.
+    """
     today = account_date(custId)
     if start is None:
         start = today
@@ -191,7 +230,23 @@ def make_query(
     return query
 
 
-def execute_query(custId, query, fields):
+def execute_query(custId: str, query: str, fields: list[str]) -> pandas.DataFrame:
+    """
+    Execute a GAQL query using ``GoogleAdsService.SearchStream``
+    and return the results in a pandas DataFrame
+
+    :arg custId:
+        The Google Ads ``customer.id`` resource for the account.
+
+    :arg query:
+        A fully-formed GAQL query.
+
+    :arg fields:
+        The Google Ads API resource fields that are selected in the query
+
+    :return:
+        A pandas DataFrame with data for each of the requested fields.
+    """
     camelFields = [snake_to_camel(f) for f in fields]
 
     service = get_ga_api_service(custId, "GoogleAdsService")
@@ -212,10 +267,51 @@ def execute_query(custId, query, fields):
 
 
 def get_ga_data(
-    custId, fromResource, fields, start=None, end=None, zeroImpressions=False
-):
-    query = make_query(
-        custId, fromResource, fields, start, end, zeroImpressions
-    )
+    custId: str,
+    fromResource: str,
+    fields: list[str],
+    start: Union[datetime.date, datetime.datetime] = None,
+    end: Union[datetime.date, datetime.datetime] = None,
+    zeroImpressions: bool = False,
+    wheres: list[str] = [],
+) -> pandas.DataFrame:
+    """
+    Get a pandas dataframe of Google Ads data for a customer account
+
+    :arg custId:
+        The Google Ads ``customer.id`` resource for the account.
+
+    :arg fromResource:
+        The Google Ads API resource that fields will be selected from.
+        For example ``keyword_view``
+
+    :arg fields:
+        The Google Ads API resource fields that you want to return data
+        for. For example ``['campaign.name', 'metrics.impressions']``
+
+    :arg start:
+        Start date for metrics. Defaults to the current day for the
+        specified customer account
+
+    :arg end:
+        End date for metrics. Defaults to the current day for the
+        specified customer account
+
+    :arg zeroImpressions:
+        Whether to include resources with zero impressions. Default is
+        False.
+
+    :arg wheres:
+        Additional 'WHERE' clauses to add to the GAQL query. For example
+        ``ad_group_ad.ad.type = 'RESPONSIVE_SEARCH_AD'``
+
+    :return:
+        A pandas DataFrame with data for each of the requested fields.
+    """
+    query = make_base_query(custId, fromResource, fields, start, end, zeroImpressions)
+
+    if wheres:
+        query += " AND " + " AND ".join(wheres)
+
     df = execute_query(custId, query, fields)
     return df
