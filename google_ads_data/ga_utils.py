@@ -24,7 +24,7 @@ import re
 from typing import Union
 import yaml
 
-from account_utils import cust_id_to_refresh_token
+from .account_utils import cust_id_to_refresh_token
 
 GOOGLE_ADS_API_VERSION = "v10"
 CUSTOMER_CLIENT_QUERY = """

@@ -58,15 +58,15 @@ API Reference
 
 Primary Functions
 -----------------
-.. autofunction:: ga_utils.get_ga_data
-.. autofunction:: account_utils.account_name_to_cust_id
+.. autofunction:: google_ads_data.get_ga_data
+.. autofunction:: google_ads_data.account_name_to_cust_id
 
 Utility Functions
 -----------------
-.. autofunction:: ga_utils.account_time
-.. autofunction:: ga_utils.account_date
-.. autofunction:: ga_utils.make_base_query
-.. autofunction:: ga_utils.execute_query
+.. autofunction:: google_ads_data.account_time
+.. autofunction:: google_ads_data.account_date
+.. autofunction:: google_ads_data.make_base_query
+.. autofunction:: google_ads_data.execute_query
 
 Change Log
 ==========
