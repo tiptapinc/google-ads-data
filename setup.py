@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='google-ads-data',
+    name='google_ads_data',
     version=open('VERSION').read().strip(),
     author='MotiveMetrics',
     install_requires=[
@@ -11,5 +11,5 @@ setup(
         'PyMongo',
         'PyYAML'
     ],
-    packages=['google-ads-data']
+    packages=['google_ads_data']
 )
