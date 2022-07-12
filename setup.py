@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name='google-ads-data',
@@ -11,5 +11,5 @@ setup(
         'PyMongo',
         'PyYAML'
     ],
-    packages=find_packages(exclude=["tests"])
+    packages=['google-ads-data']
 )
