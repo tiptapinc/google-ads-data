@@ -60,7 +60,7 @@ Get It Now
 
 ::
 
-    $ pip install -e git+https://github.com/motivemetrics/google-ads-data.git
+    $ pip install -e git+https://github.com/motivemetrics/google-ads-data.git#egg=google_ads_data
 
 Documentation
 =============
