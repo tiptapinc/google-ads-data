@@ -26,7 +26,7 @@ import yaml
 
 from .account_utils import cust_id_to_refresh_token
 
-GOOGLE_ADS_API_VERSION = "v10"
+GOOGLE_ADS_API_VERSION = "v11"
 CUSTOMER_CLIENT_QUERY = """
     SELECT
       customer_client.status,
@@ -37,16 +37,17 @@ CUSTOMER_CLIENT_QUERY = """
     WHERE customer_client.status='ENABLED'
 """
 
+client = boto3.client("ssm")
+response = client.get_parameter(Name="keys_google_adwords_api_keys.yml")
+GA_KEYS = yaml.safe_load(response["Parameter"]["Value"])
+
 
 def make_base_ga_config_dict(refreshToken):
-    client = boto3.client("ssm")
-    response = client.get_parameter(Name="keys_google_adwords_api_keys.yml")
-    keys = yaml.safe_load(response["Parameter"]["Value"])
     configDict = dict(
         refresh_token=refreshToken,
-        client_id=keys["client_id"],
-        client_secret=keys["client_secret"],
-        developer_token=keys["developer_token"],
+        client_id=GA_KEYS["client_id"],
+        client_secret=GA_KEYS["client_secret"],
+        developer_token=GA_KEYS["developer_token"],
         use_proto_plus=True,
     )
     return configDict
