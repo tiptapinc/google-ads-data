@@ -18,6 +18,7 @@ from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.errors import GoogleAdsException
 from google.api_core.retry import Retry
 from google.protobuf.json_format import MessageToDict
+import math
 import pandas
 import pytz
 import re
@@ -40,6 +41,16 @@ CUSTOMER_CLIENT_QUERY = """
 client = boto3.client("ssm")
 response = client.get_parameter(Name="keys_google_adwords_api_keys.yml")
 GA_KEYS = yaml.safe_load(response["Parameter"]["Value"])
+
+CAMPAIGN_FROM_RESOURCE = "campaign"
+CAMPAIGN_FIELDS = ['campaign.id']
+
+CHECK_SIZE_FROM_RESOURCES = [
+    "ad_group_ad",
+    "keyword_view",
+    "search_term_view"
+]
+MAX_RESULT_SIZE = 2000000
 
 
 def make_base_ga_config_dict(refreshToken):
@@ -93,13 +104,21 @@ def get_login_customer_id(custId, refreshToken):
     return None
 
 
-def get_ga_api_service(custId, serviceName):
+def build_config_dict(custId):
     refreshToken = cust_id_to_refresh_token(custId)
     if refreshToken is None:
         return None
 
     configDict = make_base_ga_config_dict(refreshToken)
     configDict["login_customer_id"] = get_login_customer_id(custId, refreshToken)
+    return configDict
+
+
+def get_ga_api_service(custId, serviceName):
+    configDict = build_config_dict(custId)
+    if not configDict:
+        return None
+
     client = GoogleAdsClient.load_from_dict(configDict)
     service = client.get_service(serviceName, version=GOOGLE_ADS_API_VERSION)
     return service
@@ -269,6 +288,62 @@ def execute_query(
     return df
 
 
+def check_result_size(custId: str, query: str) -> int:
+    """
+    Make a request with page_size=1 and return_total_results_count=True
+    to get number of results we'll get from this query
+
+    :arg custId:
+        The Google Ads ``customer.id`` resource for the account.
+
+    :arg query:
+        A fully-formed GAQL query.
+
+    :return:
+        An int indicates number of results we'll get from this query.
+    """
+    configDict = build_config_dict(custId)
+    client = GoogleAdsClient.load_from_dict(configDict)
+    search_request = client.get_type("SearchGoogleAdsRequest")
+
+    search_request.customer_id = custId
+    search_request.query = query
+    search_request.page_size = 1
+    search_request.return_total_results_count = True
+
+    service = client.get_service("GoogleAdsService", version=GOOGLE_ADS_API_VERSION)
+    results = service.search(request=search_request)
+
+    return results.total_results_count
+
+
+def get_campaign_ids(
+        custId: str,
+        start: typing.Union[datetime.date, datetime.datetime] = None,
+        end: typing.Union[datetime.date, datetime.datetime] = None,
+    ) -> typing.List[str]:
+    """
+    Get a list of search campaign ids for a customer account
+
+    :arg custId:
+        The Google Ads ``customer.id`` resource for the account.
+
+    :arg start:
+        Start date for metrics. Defaults to the current day for the
+        specified customer account
+
+    :arg end:
+        End date for metrics. Defaults to the current day for the
+        specified customer account
+    """
+    wheres = ["campaign.advertising_channel_type = 'SEARCH'"]
+    query = make_base_query(custId, CAMPAIGN_FROM_RESOURCE, CAMPAIGN_FIELDS, start, end, True)
+    query += " AND " + " AND ".join(wheres)
+
+    df = execute_query(custId, query, CAMPAIGN_FIELDS)
+    return df['campaign.id'].unique().tolist()
+
+
 def get_ga_data(
     custId: str,
     fromResource: str,
@@ -316,5 +391,25 @@ def get_ga_data(
     if wheres:
         query += " AND " + " AND ".join(wheres)
 
-    df = execute_query(custId, query, fields)
+    if fromResource in CHECK_SIZE_FROM_RESOURCES:
+        resultSize = check_result_size(custId, query)
+        if resultSize > MAX_RESULT_SIZE:
+            campaign_ids = get_campaign_ids(custId, start, end)
+            step = math.ceil(len(campaign_ids) / (math.ceil(resultSize / MAX_RESULT_SIZE)))
+            df = pandas.DataFrame()
+            for i in range(0, len(campaign_ids), step):
+                cids = ', '.join(f"'{cid}'" for cid in campaign_ids[i: i + step])
+                sub_query = make_base_query(custId, fromResource, fields, start, end, zeroImpressions)
+                sub_query += " AND " + f"campaign.id IN ({cids})"
+                sub_df = execute_query(custId, sub_query, fields)
+                
+                df = df.append(sub_df)
+
+            df = df.reset_index(drop=True)
+        else:
+            df = execute_query(custId, query, fields)
+
+    else:
+        df = execute_query(custId, query, fields)
+
     return df
