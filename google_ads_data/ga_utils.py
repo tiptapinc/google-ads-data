@@ -308,7 +308,7 @@ def check_result_size(custId: str, query: str) -> int:
 
     query_split = query.split('FROM')
 
-    sizeQuery = f'{query_split[0].split(', ')[0]} FROM {query_split[1]}'
+    sizeQuery = f"{query_split[0].split(', ')[0]} FROM {query_split[1]}"
 
     search_request.customer_id = custId
     search_request.query = sizeQuery
