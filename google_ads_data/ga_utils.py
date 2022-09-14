@@ -52,6 +52,18 @@ CHECK_SIZE_FROM_RESOURCES = [
 ]
 MAX_RESULT_SIZE = 2000000
 
+CATEGORICAL_COLS = [
+    "ad_group.status",
+    "campaign.status",
+    "customer.id",
+    "customer.status",
+    "customer.descriptive_name",
+    "ad_group_ad.ad.type",
+    "ad_group_ad_asset_view.field_type",
+    "ad_group_ad_asset_view.performance_label",
+    "ad_group_ad.status"
+]
+
 
 def make_base_ga_config_dict(refreshToken):
     configDict = dict(
@@ -250,6 +262,20 @@ def make_base_query(
     return query
 
 
+def convert_to_category_dtype(df: pandas.DataFrame):
+    """
+    Convert dataframe columns to category dtype to save memory
+
+    :arg df:
+        A pandas dataframe
+    """
+    for col in CATEGORICAL_COLS:
+        if col in df.columns:
+            df[col] = df[col].astype('category')
+
+    return df
+
+
 def execute_query(
     custId: str, query: str, fields: typing.List[str]
 ) -> pandas.DataFrame:
@@ -285,7 +311,7 @@ def execute_query(
             rows.append(row)
 
     df = pandas.DataFrame(rows, columns=fields)
-    return df
+    return convert_to_category_dtype(df)
 
 
 def check_result_size(custId: str, query: str) -> int:
@@ -408,6 +434,7 @@ def get_ga_data(
                 results.append(execute_query(custId, sub_query, fields))
                 
             df = pandas.concat(results, ignore_index=True)
+            df = convert_to_category_dtype(df)
         else:
             df = execute_query(custId, query, fields)
 
