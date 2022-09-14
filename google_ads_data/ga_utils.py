@@ -306,8 +306,12 @@ def check_result_size(custId: str, query: str) -> int:
     client = GoogleAdsClient.load_from_dict(configDict)
     search_request = client.get_type("SearchGoogleAdsRequest")
 
+    query_split = query.split('FROM')
+
+    sizeQuery = f'{query_split[0].split(', ')[0]} FROM {query_split[1]}'
+
     search_request.customer_id = custId
-    search_request.query = query
+    search_request.query = sizeQuery
     search_request.page_size = 1
     search_request.return_total_results_count = True
 
