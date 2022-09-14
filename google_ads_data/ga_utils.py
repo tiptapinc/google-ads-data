@@ -395,25 +395,25 @@ def get_ga_data(
     if wheres:
         query += " AND " + " AND ".join(wheres)
 
-    if fromResource in CHECK_SIZE_FROM_RESOURCES:
-        resultSize = check_result_size(custId, query)
-        if resultSize > MAX_RESULT_SIZE:
-            campaign_ids = get_campaign_ids(custId, start, end)
-            step = math.ceil(len(campaign_ids) / (math.ceil(resultSize / MAX_RESULT_SIZE)))
-            df = pandas.DataFrame()
-            for i in range(0, len(campaign_ids), step):
-                cids = ', '.join(f"'{cid}'" for cid in campaign_ids[i: i + step])
-                sub_query = make_base_query(custId, fromResource, fields, start, end, zeroImpressions)
-                sub_query += " AND " + f"campaign.id IN ({cids})"
-                sub_df = execute_query(custId, sub_query, fields)
+    # if fromResource in CHECK_SIZE_FROM_RESOURCES:
+    #     resultSize = check_result_size(custId, query)
+    #     if resultSize > MAX_RESULT_SIZE:
+    #         campaign_ids = get_campaign_ids(custId, start, end)
+    #         step = math.ceil(len(campaign_ids) / (math.ceil(resultSize / MAX_RESULT_SIZE)))
+    #         df = pandas.DataFrame()
+    #         for i in range(0, len(campaign_ids), step):
+    #             cids = ', '.join(f"'{cid}'" for cid in campaign_ids[i: i + step])
+    #             sub_query = make_base_query(custId, fromResource, fields, start, end, zeroImpressions)
+    #             sub_query += " AND " + f"campaign.id IN ({cids})"
+    #             sub_df = execute_query(custId, sub_query, fields)
                 
-                df = df.append(sub_df)
+    #             df = df.append(sub_df)
 
-            df = df.reset_index(drop=True)
-        else:
-            df = execute_query(custId, query, fields)
+    #         df = df.reset_index(drop=True)
+    #     else:
+    #         df = execute_query(custId, query, fields)
 
-    else:
-        df = execute_query(custId, query, fields)
+    # else:
+    df = execute_query(custId, query, fields)
 
     return df
