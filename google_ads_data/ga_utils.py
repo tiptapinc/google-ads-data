@@ -16,6 +16,7 @@ import boto3
 import datetime
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.errors import GoogleAdsException
+from google.api_core import exceptions
 from google.api_core.retry import Retry
 from google.protobuf.json_format import MessageToDict
 import math
@@ -301,8 +302,22 @@ def execute_query(
     stream = service.search_stream(customer_id=custId, query=query)
 
     rows = []
-    for batch in stream:
-        for r in batch.results:
+    try:
+        for batch in stream:
+            for r in batch.results:
+                rDict = MessageToDict(r._pb)
+                row = []
+                for f in camelFields:
+                    row.append(get_nested_dict_value(f, rDict))
+
+                rows.append(row)
+    except exceptions.Unknown:
+        response = service.search(
+            customer_id=custId,
+            query=query,
+            retry=Retry(maximum=20, deadline=60)
+        )
+        for r in response:
             rDict = MessageToDict(r._pb)
             row = []
             for f in camelFields:
@@ -421,24 +436,24 @@ def get_ga_data(
     if wheres:
         query += " AND " + " AND ".join(wheres)
 
-    if fromResource in CHECK_SIZE_FROM_RESOURCES:
-        resultSize = check_result_size(custId, query)
-        if resultSize > MAX_RESULT_SIZE:
-            campaign_ids = get_campaign_ids(custId, start, end)
-            step = math.ceil(len(campaign_ids) / (math.ceil(resultSize / MAX_RESULT_SIZE)))
-            results = []
-            for i in range(0, len(campaign_ids), step):
-                cids = ', '.join(f"'{cid}'" for cid in campaign_ids[i: i + step])
-                sub_query = make_base_query(custId, fromResource, fields, start, end, zeroImpressions)
-                sub_query += " AND " + f"campaign.id IN ({cids})"
-                results.append(execute_query(custId, sub_query, fields))
+    # if fromResource in CHECK_SIZE_FROM_RESOURCES:
+    #     resultSize = check_result_size(custId, query)
+    #     if resultSize > MAX_RESULT_SIZE:
+    #         campaign_ids = get_campaign_ids(custId, start, end)
+    #         step = math.ceil(len(campaign_ids) / (math.ceil(resultSize / MAX_RESULT_SIZE)))
+    #         results = []
+    #         for i in range(0, len(campaign_ids), step):
+    #             cids = ', '.join(f"'{cid}'" for cid in campaign_ids[i: i + step])
+    #             sub_query = make_base_query(custId, fromResource, fields, start, end, zeroImpressions)
+    #             sub_query += " AND " + f"campaign.id IN ({cids})"
+    #             results.append(execute_query(custId, sub_query, fields))
                 
-            df = pandas.concat(results, ignore_index=True)
-            df = convert_to_category_dtype(df)
-        else:
-            df = execute_query(custId, query, fields)
+    #         df = pandas.concat(results, ignore_index=True)
+    #         df = convert_to_category_dtype(df)
+    #     else:
+    #         df = execute_query(custId, query, fields)
 
-    else:
-        df = execute_query(custId, query, fields)
+    # else:
+    df = execute_query(custId, query, fields)
 
     return df
