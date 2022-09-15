@@ -299,7 +299,11 @@ def execute_query(
     camelFields = [snake_to_camel(f) for f in fields]
 
     service = get_ga_api_service(custId, "GoogleAdsService")
-    stream = service.search_stream(customer_id=custId, query=query)
+    stream = service.search_stream(
+        customer_id=custId,
+        query=query,
+        retry=Retry(maximum=20, deadline=60)
+    )
 
     rows = []
     try:
