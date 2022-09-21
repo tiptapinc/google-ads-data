@@ -440,24 +440,6 @@ def get_ga_data(
     if wheres:
         query += " AND " + " AND ".join(wheres)
 
-    # if fromResource in CHECK_SIZE_FROM_RESOURCES:
-    #     resultSize = check_result_size(custId, query)
-    #     if resultSize > MAX_RESULT_SIZE:
-    #         campaign_ids = get_campaign_ids(custId, start, end)
-    #         step = math.ceil(len(campaign_ids) / (math.ceil(resultSize / MAX_RESULT_SIZE)))
-    #         results = []
-    #         for i in range(0, len(campaign_ids), step):
-    #             cids = ', '.join(f"'{cid}'" for cid in campaign_ids[i: i + step])
-    #             sub_query = make_base_query(custId, fromResource, fields, start, end, zeroImpressions)
-    #             sub_query += " AND " + f"campaign.id IN ({cids})"
-    #             results.append(execute_query(custId, sub_query, fields))
-                
-    #         df = pandas.concat(results, ignore_index=True)
-    #         df = convert_to_category_dtype(df)
-    #     else:
-    #         df = execute_query(custId, query, fields)
-
-    # else:
     df = execute_query(custId, query, fields)
 
     return df
