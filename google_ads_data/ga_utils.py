@@ -189,11 +189,11 @@ def account_date(custId: str) -> datetime.date:
 
 def make_base_query(
     custId: str,
-    fromResource: str,
+    from_resource: str,
     fields: typing.List[str],
     start: typing.Union[datetime.date, datetime.datetime] = None,
     end: typing.Union[datetime.date, datetime.datetime] = None,
-    zeroImpressions: bool = False,
+    zero_impressions: bool = False,
 ) -> str:
     """
     Make a basic Google Ads Query Language (GAQL) query to be used with
@@ -202,7 +202,7 @@ def make_base_query(
     :arg custId:
         The Google Ads ``customer.id`` resource for the account.
 
-    :arg fromResource:
+    :arg from_resource:
         The Google Ads API resource that fields will be selected from.
         For example ``keyword_view``
 
@@ -218,7 +218,7 @@ def make_base_query(
         End date for metrics. Defaults to the current day for the
         specified customer account
 
-    :arg zeroImpressions:
+    :arg zero_impressions:
         Whether to include resources with zero impressions. Default is
         False.
 
@@ -240,10 +240,10 @@ def make_base_query(
 
     query = "SELECT "
     query += ", ".join(fields)
-    query += f" FROM {fromResource} "
+    query += f" FROM {from_resource} "
 
     wheres = []
-    if zeroImpressions is False:
+    if zero_impressions is False:
         wheres.append("metrics.impressions > 0")
 
     startstr = start.strftime("%Y-%m-%d")
@@ -291,7 +291,7 @@ def execute_query(
     :return:
         A pandas DataFrame with data for each of the requested fields.
     """
-    camelFields = [snake_to_camel(f) for f in fields]
+    camel_fields = [snake_to_camel(f) for f in fields]
 
     service = get_ga_api_service(cust_id, "GoogleAdsService")
     stream = service.search_stream(
@@ -306,7 +306,7 @@ def execute_query(
             for r in batch.results:
                 rDict = MessageToDict(r._pb)
                 row = []
-                for f in camelFields:
+                for f in camel_fields:
                     row.append(get_nested_dict_value(f, rDict))
 
                 rows.append(row)
@@ -319,7 +319,7 @@ def execute_query(
         for r in response:
             rDict = MessageToDict(r._pb)
             row = []
-            for f in camelFields:
+            for f in camel_fields:
                 row.append(get_nested_dict_value(f, rDict))
 
             rows.append(row)
@@ -390,11 +390,11 @@ def get_campaign_ids(
 
 def get_ga_data(
     cust_id: str,
-    fromResource: str,
+    from_resource: str,
     fields: typing.List[str],
     start: typing.Union[datetime.date, datetime.datetime] = None,
     end: typing.Union[datetime.date, datetime.datetime] = None,
-    zeroImpressions: bool = False,
+    zero_impressions: bool = False,
     wheres: typing.List[str] = [],
 ) -> pandas.DataFrame:
     """
@@ -403,7 +403,7 @@ def get_ga_data(
     :arg cust_id:
         The Google Ads ``customer.id`` resource for the account.
 
-    :arg fromResource:
+    :arg from_resource:
         The Google Ads API resource that fields will be selected from.
         For example ``keyword_view``
 
@@ -419,7 +419,7 @@ def get_ga_data(
         End date for metrics. Defaults to the current day for the
         specified customer account
 
-    :arg zeroImpressions:
+    :arg zero_impressions:
         Whether to include resources with zero impressions. Default is
         False.
 
@@ -430,7 +430,7 @@ def get_ga_data(
     :return:
         A pandas DataFrame with data for each of the requested fields.
     """
-    query = make_base_query(cust_id, fromResource, fields, start, end, zeroImpressions)
+    query = make_base_query(cust_id, from_resource, fields, start, end, zero_impressions)
 
     if wheres:
         query += " AND " + " AND ".join(wheres)
