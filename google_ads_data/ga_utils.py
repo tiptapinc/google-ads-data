@@ -46,14 +46,9 @@ GA_KEYS = yaml.safe_load(response["Parameter"]["Value"])
 CAMPAIGN_FROM_RESOURCE = "campaign"
 CAMPAIGN_FIELDS = ['campaign.id']
 
-CHECK_SIZE_FROM_RESOURCES = [
-    "ad_group_ad",
-    "keyword_view",
-    "search_term_view"
-]
 MAX_RESULT_SIZE = 2000000
 
-CATEGORICAL_COLS = [
+CATEGORICAL_COLS = (
     "ad_group.status",
     "campaign.status",
     "customer.id",
@@ -63,7 +58,7 @@ CATEGORICAL_COLS = [
     "ad_group_ad_asset_view.field_type",
     "ad_group_ad_asset_view.performance_label",
     "ad_group_ad.status"
-]
+)
 
 
 def make_base_ga_config_dict(refreshToken):
@@ -263,7 +258,7 @@ def make_base_query(
     return query
 
 
-def convert_to_category_dtype(df: pandas.DataFrame):
+def convert_to_category_dtype(df: pandas.DataFrame) -> pandas.DataFrame:
     """
     Convert dataframe columns to category dtype to save memory
 
@@ -278,13 +273,13 @@ def convert_to_category_dtype(df: pandas.DataFrame):
 
 
 def execute_query(
-    custId: str, query: str, fields: typing.List[str]
+    cust_id: str, query: str, fields: typing.List[str]
 ) -> pandas.DataFrame:
     """
     Execute a GAQL query using ``GoogleAdsService.SearchStream``
     and return the results in a pandas DataFrame
 
-    :arg custId:
+    :arg cust_id:
         The Google Ads ``customer.id`` resource for the account.
 
     :arg query:
@@ -298,9 +293,9 @@ def execute_query(
     """
     camelFields = [snake_to_camel(f) for f in fields]
 
-    service = get_ga_api_service(custId, "GoogleAdsService")
+    service = get_ga_api_service(cust_id, "GoogleAdsService")
     stream = service.search_stream(
-        customer_id=custId,
+        customer_id=cust_id,
         query=query,
         retry=Retry(maximum=20, deadline=60)
     )
@@ -317,7 +312,7 @@ def execute_query(
                 rows.append(row)
     except exceptions.Unknown:
         response = service.search(
-            customer_id=custId,
+            customer_id=cust_id,
             query=query,
             retry=Retry(maximum=20, deadline=60)
         )
@@ -333,12 +328,12 @@ def execute_query(
     return convert_to_category_dtype(df)
 
 
-def check_result_size(custId: str, query: str) -> int:
+def check_result_size(cust_id: str, query: str) -> int:
     """
     Make a request with page_size=1 and return_total_results_count=True
     to get number of results we'll get from this query
 
-    :arg custId:
+    :arg cust_id:
         The Google Ads ``customer.id`` resource for the account.
 
     :arg query:
@@ -347,16 +342,16 @@ def check_result_size(custId: str, query: str) -> int:
     :return:
         An int indicates number of results we'll get from this query.
     """
-    configDict = build_config_dict(custId)
-    client = GoogleAdsClient.load_from_dict(configDict)
+    config_dict = build_config_dict(cust_id)
+    client = GoogleAdsClient.load_from_dict(config_dict)
     search_request = client.get_type("SearchGoogleAdsRequest")
 
     query_split = query.split('FROM')
 
-    sizeQuery = f"{query_split[0].split(', ')[0]} FROM {query_split[1]}"
+    size_query = f"{query_split[0].split(', ')[0]} FROM {query_split[1]}"
 
-    search_request.customer_id = custId
-    search_request.query = sizeQuery
+    search_request.customer_id = cust_id
+    search_request.query = size_query
     search_request.page_size = 1
     search_request.return_total_results_count = True
 
@@ -367,14 +362,14 @@ def check_result_size(custId: str, query: str) -> int:
 
 
 def get_campaign_ids(
-        custId: str,
+        cust_id: str,
         start: typing.Union[datetime.date, datetime.datetime] = None,
         end: typing.Union[datetime.date, datetime.datetime] = None,
     ) -> typing.List[str]:
     """
     Get a list of search campaign ids for a customer account
 
-    :arg custId:
+    :arg cust_id:
         The Google Ads ``customer.id`` resource for the account.
 
     :arg start:
@@ -386,15 +381,15 @@ def get_campaign_ids(
         specified customer account
     """
     wheres = ["campaign.advertising_channel_type = 'SEARCH'"]
-    query = make_base_query(custId, CAMPAIGN_FROM_RESOURCE, CAMPAIGN_FIELDS, start, end, True)
+    query = make_base_query(cust_id, CAMPAIGN_FROM_RESOURCE, CAMPAIGN_FIELDS, start, end, True)
     query += " AND " + " AND ".join(wheres)
 
-    df = execute_query(custId, query, CAMPAIGN_FIELDS)
+    df = execute_query(cust_id, query, CAMPAIGN_FIELDS)
     return df['campaign.id'].unique().tolist()
 
 
 def get_ga_data(
-    custId: str,
+    cust_id: str,
     fromResource: str,
     fields: typing.List[str],
     start: typing.Union[datetime.date, datetime.datetime] = None,
@@ -405,7 +400,7 @@ def get_ga_data(
     """
     Get a pandas dataframe of Google Ads data for a customer account
 
-    :arg custId:
+    :arg cust_id:
         The Google Ads ``customer.id`` resource for the account.
 
     :arg fromResource:
@@ -435,11 +430,11 @@ def get_ga_data(
     :return:
         A pandas DataFrame with data for each of the requested fields.
     """
-    query = make_base_query(custId, fromResource, fields, start, end, zeroImpressions)
+    query = make_base_query(cust_id, fromResource, fields, start, end, zeroImpressions)
 
     if wheres:
         query += " AND " + " AND ".join(wheres)
 
-    df = execute_query(custId, query, fields)
+    df = execute_query(cust_id, query, fields)
 
     return df
