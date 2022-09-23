@@ -19,7 +19,6 @@ from google.ads.googleads.errors import GoogleAdsException
 from google.api_core import exceptions
 from google.api_core.retry import Retry
 from google.protobuf.json_format import MessageToDict
-import math
 import pandas
 import pytz
 import re
@@ -362,10 +361,10 @@ def check_result_size(cust_id: str, query: str) -> int:
 
 
 def get_campaign_ids(
-        cust_id: str,
-        start: typing.Union[datetime.date, datetime.datetime] = None,
-        end: typing.Union[datetime.date, datetime.datetime] = None,
-    ) -> typing.List[str]:
+    cust_id: str,
+    start: typing.Union[datetime.date, datetime.datetime] = None,
+    end: typing.Union[datetime.date, datetime.datetime] = None,
+) -> typing.List[str]:
     """
     Get a list of search campaign ids for a customer account
 
