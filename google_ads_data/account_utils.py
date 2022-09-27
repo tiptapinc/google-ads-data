@@ -21,6 +21,16 @@ import pymongo
 
 
 def appx_mongo_db(env: str = "prod") -> pymongo.database.Database:
+    """
+    Create and return a mongo meteor-appx collection connection
+
+        Parameters:
+            env (str): Environment from which to retrieve the account information. Default "prod".
+
+        Returns:
+            db (pymongo.database.Database): Mongo Database connection.
+
+    """
     host = f"mongodb-{env}.motivemetrics.com"
     port = 27017
     client = pymongo.MongoClient(
@@ -30,7 +40,18 @@ def appx_mongo_db(env: str = "prod") -> pymongo.database.Database:
     return db
 
 
-def cust_id_to_account(custId: str, env: str = "prod") -> dict:
+def cust_id_to_account(cust_id: str, env: str = "prod") -> dict:
+    """
+    Return an account document by using cust_id to find a match
+
+        Parameters:
+            cust_id (str): customer ID
+            env (str): Environment from which to retrieve the account information. Default "prod".
+
+        Returns:
+            account (dict): AdWordsAccounts document
+
+    """
     db = appx_mongo_db(env)
 
     if db is None:
@@ -39,23 +60,43 @@ def cust_id_to_account(custId: str, env: str = "prod") -> dict:
     accounts = db.AdWordsAccounts
 
     # this needs to return the freshest account if there are multiple
-    account = accounts.find_one({"data.customerId.customerId": custId})
+    account = accounts.find_one({"data.customerId.customerId": cust_id})
     return account
 
 
 def account_name_to_account(
-    acctname: str, custname: str = "", env: str = "prod"
+    account_name: str, cust_name: str = "", env: str = "prod"
 ) -> dict:
+    """
+    Return an account document by using account_name and cust_name to find a match
+
+        Parameters:
+            account_name (str): The (case insensitive) name of the account. This parameter is
+            sufficient if the name is globally unique amongst MotiveMetrics
+            accessible accounts. If the name is not unique, the returned
+            account will be one of the accounts with that name. Do not include
+            the account type (- Google), that is appended by AppX.
+
+            cust_name (str): The (case insensitive) name of the MotiveMetrics customer that
+            owns the account. Include this parameter if you're not sure that
+            the account name is globally unique among customer accounts.
+
+            env (str): Environment from which to retrieve the account information. Default "prod".
+
+        Returns:
+            account (dict): AdWordsAccounts document
+
+    """
     db = appx_mongo_db(env)
 
     if db is None:
         return None
 
     criteria = {"type": "google"}
-    if custname:
+    if cust_name:
         customers = db.CustomerAccounts
         customer = customers.find_one(
-            {"name": {"$regex": f"^{custname}$", "$options": "-i"}}
+            {"name": {"$regex": f"^{cust_name}$", "$options": "-i"}}
         )
         if customer is None:
             return None
@@ -63,68 +104,101 @@ def account_name_to_account(
         criteria["_id"] = {"$in": customer["accounts"]}
 
     accounts = db.AdWordsAccounts
-    criteria["name"] = {"$regex": "^{0}$".format(acctname), "$options": "-i"}
+    criteria["name"] = {"$regex": "^{0}$".format(account_name), "$options": "-i"}
     account = accounts.find_one(criteria)
     return account
 
 
 def account_to_refresh_token(account: dict) -> str:
+    """
+    Return a refresh_token for the account
+
+        Parameters:
+            account (dict): AdWordsAccounts document
+
+        Returns:
+            refresh_token (str): OAuth refresh token needed to access the account
+
+    """
     if account is None or "data" not in account:
         return None
 
-    return account["data"].get("refresh_token")
+    refresh_token = account["data"].get("refresh_token")
+    return refresh_token
 
 
 def account_name_to_refresh_token(
-    acctname: str, custname: str = "", env: str = "prod"
+    account_name: str, cust_name: str = "", env: str = "prod"
 ) -> str:
-    account = account_name_to_account(acctname, custname, env)
-    return account_to_refresh_token(account)
+    """
+    Return a refresh_token for the account_name/cust_name combo
+
+        Parameters:
+            account_name (str): The (case insensitive) name of the account. This parameter is
+            sufficient if the name is globally unique amongst MotiveMetrics
+            accessible accounts. If the name is not unique, the returned
+            account will be one of the accounts with that name. Do not include
+            the account type (- Google), that is appended by AppX.
+
+            cust_name (str): The (case insensitive) name of the MotiveMetrics customer that
+            owns the account. Include this parameter if you're not sure that
+            the account name is globally unique among customer accounts.
+
+            env (str): Environment from which to retrieve the account information. Default "prod".
+
+        Returns:
+            refresh_token (str): OAuth refresh token needed to access the account
+
+    """
+    account = account_name_to_account(account_name, cust_name, env)
+    refresh_token = account_to_refresh_token(account)
+    return refresh_token
 
 
 def account_name_to_cust_id(
-    acctname: str, custname: str = "", env: str = "prod"
+    account_name: str, cust_name: str = "", env: str = "prod"
 ) -> str:
     """
     Get the Google Ads customer ID for an account identified by its name
     and optionally the MotiveMetrics customer name
+        
+        Parameters:
+            account_name (str): The (case insensitive) name of the account. This parameter is
+            sufficient if the name is globally unique amongst MotiveMetrics
+            accessible accounts. If the name is not unique, the returned
+            account will be one of the accounts with that name. Do not include
+            the account type (- Google), that is appended by AppX.
 
-    :arg acctname:
-        The (case insensitive) name of the account. This parameter is
-        sufficient if the name is globally unique amongst MotiveMetrics
-        accessible accounts. If the name is not unique, the returned
-        account will be one of the accounts with that name. Do not include
-        the account type (- Google), that is appended by AppX.
+            cust_name (str): The (case insensitive) name of the MotiveMetrics customer that
+            owns the account. Include this parameter if you're not sure that
+            the account name is globally unique among customer accounts.
 
-    :arg custname:
-        The (case insensitive) name of the MotiveMetrics customer that
-        owns the account. Include this parameter if you're not sure that
-        the account name is globally unique among customer accounts.
+            env (str): Environment from which to retrieve the account information. Default "prod".
 
-    :arg env:
-        Environment from which to retrieve the account information.
+        Returns:
+            cust_id (str): The Google Ads ``customer.id`` resource for the account.
 
-    :return:
-        The Google Ads ``customer.id`` resource for the account.
-
-    Example::
-        custId = account_name_to_cust_id("car.com", custname="autoweb")
     """
-    account = account_name_to_account(acctname, custname, env)
+    account = account_name_to_account(account_name, cust_name, env)
     if account is None or "data" not in account or "customerId" not in account["data"]:
         return None
 
-    return account["data"]["customerId"].get("customerId")
+    cust_id = account["data"]["customerId"].get("customerId")
+    return cust_id
 
 
-def cust_id_to_refresh_token(custId: str, env: str = "prod") -> str:
+def cust_id_to_refresh_token(cust_id: str, env: str = "prod") -> str:
     """
-    get the saved refresh token for the account associated with a Google Ads customer ID
+    Get the saved refresh token for the account associated with a Google Ads customer ID
+    
+        Parameters:
+            cust_id (str): customer ID
+            env (str): Environment from which to retrieve the account information. Default "prod".
 
-    :param str custId: customer ID
-    :param str env: (optional) environment of the AppX mongodb database
-    :returns: OAuth refresh token needed to access the account
-    :rtype: str
+        Returns:
+            refresh_token (str): OAuth refresh token needed to access the account
+
     """
-    account = cust_id_to_account(custId, env)
-    return account_to_refresh_token(account)
+    account = cust_id_to_account(cust_id, env)
+    refresh_token = account_to_refresh_token(account)
+    return refresh_token
