@@ -17,10 +17,16 @@ Two functions are meant to be public:
 
 All other functions are internal to this module
 """
+from enum import Enum
 import pymongo
+from typing import Optional
 
 
-def appx_mongo_db(env: str = "prod") -> pymongo.database.Database:
+class Env(Enum):
+    Prod = "prod"
+
+
+def appx_mongo_db(env: str = Env.Prod.value) -> pymongo.database.Database:
     """
     Create and return a mongo meteor-appx collection connection
 
@@ -40,7 +46,7 @@ def appx_mongo_db(env: str = "prod") -> pymongo.database.Database:
     return db
 
 
-def cust_id_to_account(cust_id: str, env: str = "prod") -> dict:
+def cust_id_to_account(cust_id: str, env: str = Env.Prod.value) -> Optional[dict]:
     """
     Return an account document by using cust_id to find a match
 
@@ -65,8 +71,8 @@ def cust_id_to_account(cust_id: str, env: str = "prod") -> dict:
 
 
 def account_name_to_account(
-    account_name: str, cust_name: str = "", env: str = "prod"
-) -> dict:
+    account_name: str, cust_name: str = "", env: str = Env.Prod.value
+) -> Optional[dict]:
     """
     Return an account document by using account_name and cust_name to find a match
 
@@ -109,7 +115,7 @@ def account_name_to_account(
     return account
 
 
-def account_to_refresh_token(account: dict) -> str:
+def account_to_refresh_token(account: dict) -> Optional[str]:
     """
     Return a refresh_token for the account
 
@@ -128,7 +134,7 @@ def account_to_refresh_token(account: dict) -> str:
 
 
 def account_name_to_refresh_token(
-    account_name: str, cust_name: str = "", env: str = "prod"
+    account_name: str, cust_name: str = "", env: str = Env.Prod.value
 ) -> str:
     """
     Return a refresh_token for the account_name/cust_name combo
@@ -156,8 +162,8 @@ def account_name_to_refresh_token(
 
 
 def account_name_to_cust_id(
-    account_name: str, cust_name: str = "", env: str = "prod"
-) -> str:
+    account_name: str, cust_name: str = "", env: str = Env.Prod.value
+) -> Optional[dict]:
     """
     Get the Google Ads customer ID for an account identified by its name
     and optionally the MotiveMetrics customer name
@@ -180,14 +186,14 @@ def account_name_to_cust_id(
 
     """
     account = account_name_to_account(account_name, cust_name, env)
-    if account is None or "data" not in account or "customerId" not in account["data"]:
+    if account is None or not account.get('data') or not account['data'].get('customerId'):
         return None
 
     cust_id = account["data"]["customerId"].get("customerId")
     return cust_id
 
 
-def cust_id_to_refresh_token(cust_id: str, env: str = "prod") -> str:
+def cust_id_to_refresh_token(cust_id: str, env: str = Env.Prod.value) -> str:
     """
     Get the saved refresh token for the account associated with a Google Ads customer ID
     
