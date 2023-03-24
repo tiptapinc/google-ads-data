@@ -28,7 +28,7 @@ import yaml
 
 from .account_utils import cust_id_to_refresh_token
 
-GOOGLE_ADS_API_VERSION = "v11"
+GOOGLE_ADS_API_VERSION = "v12"
 CUSTOMER_CLIENT_QUERY = """
     SELECT
       customer_client.status,
@@ -209,9 +209,9 @@ def snake_to_camel(snake_string: str) -> str:
 def get_nested_dict_value(key: str, nested_dict: dict) -> typing.Union[dict, str, int, float]:
     """
     Return value from a nested dict by key
-    
+
         Parameters:
-            key (str): 
+            key (str):
             nested_dict (dict): nested dict
 
         Returns:
@@ -282,14 +282,14 @@ def make_base_query(
             cust_id (str): The Google Ads ``customer.id`` resource for the account.
             from_resource (str): The Google Ads API resource that fields will be selected from.
             For example ``keyword_view``
-            
+
             fields (typing.List[str]): The Google Ads API resource fields that you want to return data
             for. For example ``['campaign.name', 'metrics.impressions']``
 
-            start (typing.Union[datetime.date, datetime.datetime]): Start date for metrics. Defaults to the current day 
+            start (typing.Union[datetime.date, datetime.datetime]): Start date for metrics. Defaults to the current day
             for the specified customer account.
 
-            end (typing.Union[datetime.date, datetime.datetime]): End date for metrics. Defaults to the current day for 
+            end (typing.Union[datetime.date, datetime.datetime]): End date for metrics. Defaults to the current day for
             the specified customer account.
 
             zero_impressions (bool): Whether to include resources with zero impressions. Default is False.
@@ -454,10 +454,10 @@ def get_ga_data(
 
             fields (typing.List[str]): The Google Ads API resource fields that are selected in the query.
 
-            start (typing.Union[datetime.date, datetime.datetime]): Start date for metrics. Defaults to the current day 
+            start (typing.Union[datetime.date, datetime.datetime]): Start date for metrics. Defaults to the current day
             for the specified customer account.
 
-            end (typing.Union[datetime.date, datetime.datetime]): End date for metrics. Defaults to the current day for 
+            end (typing.Union[datetime.date, datetime.datetime]): End date for metrics. Defaults to the current day for
             the specified customer account.
 
             zero_impressions (bool): Whether to include resources with zero impressions. Default is False.
