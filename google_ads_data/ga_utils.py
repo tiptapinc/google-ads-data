@@ -16,7 +16,7 @@ import boto3
 import datetime
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.errors import GoogleAdsException
-import google.ads.googleads.v11.services.services.google_ads_service.client as google_ads_client
+import google.ads.googleads.v12.services.services.google_ads_service.client as google_ads_client
 from google.api_core import exceptions
 from google.api_core.retry import Retry
 from google.protobuf.json_format import MessageToDict
