@@ -1,5 +1,5 @@
 boto3
-google-ads==21.3.0
+google-ads
 pandas
 PyMongo
 pytest

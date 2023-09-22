@@ -16,7 +16,7 @@ import boto3
 import datetime
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.errors import GoogleAdsException
-import google.ads.googleads.v12.services.services.google_ads_service.client as google_ads_client
+import google.ads.googleads.v14.services.services.google_ads_service.client as google_ads_client
 from google.api_core import exceptions
 from google.api_core.retry import Retry
 from google.protobuf.json_format import MessageToDict
@@ -28,7 +28,7 @@ import yaml
 
 from .account_utils import cust_id_to_refresh_token
 
-GOOGLE_ADS_API_VERSION = "v12"
+GOOGLE_ADS_API_VERSION = "v14"
 CUSTOMER_CLIENT_QUERY = """
     SELECT
       customer_client.status,
