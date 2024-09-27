@@ -1,6 +1,6 @@
 boto3
 google-ads
 pandas
-PyMongo
+pymongo==3.11.0
 pytest
 PyYAML
