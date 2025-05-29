@@ -28,7 +28,7 @@ import yaml
 
 from .account_utils import cust_id_to_refresh_token
 
-GOOGLE_ADS_API_VERSION = "v17"
+GOOGLE_ADS_API_VERSION = "v18"
 CUSTOMER_CLIENT_QUERY = """
     SELECT
       customer_client.status,
